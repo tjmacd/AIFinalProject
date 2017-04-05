@@ -31,7 +31,7 @@ public class TweetClassifier {
 		int outputNum = 2;   // number of output classes
 		int batchSize = 50; // batch size for each epoch
 		int rngSeed = 123;   // random number seed for reproducibility
-		int numEpochs = 1000;  // number of epochs to perform
+		int numEpochs = 10;  // number of epochs to perform
 		
 		
 		String DATA_PATH = "LabelledData";
@@ -83,11 +83,15 @@ public class TweetClassifier {
 	            .list()
 	            .layer(0, new GravesLSTM.Builder()
 	            		.nIn(numInputs)
-	            		.nOut(200)
+	            		.nOut(numHiddenNodes)
 	            		.activation(Activation.SOFTSIGN)
 	            		.build())
-	            .layer(1, new RnnOutputLayer.Builder().activation(Activation.SOFTMAX)
-	                .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(200).nOut(outputNum).build())
+	            .layer(1, new RnnOutputLayer.Builder()
+	            		.activation(Activation.SOFTMAX)
+	            		.lossFunction(LossFunctions.LossFunction.MCXENT)
+	            		.nIn(numHiddenNodes)
+	            		.nOut(outputNum)
+	            		.build())
 	            .pretrain(false).backprop(true).build();
 		
 		MultiLayerNetwork model = new MultiLayerNetwork(conf);
@@ -104,10 +108,12 @@ public class TweetClassifier {
 		Evaluation eval = new Evaluation(outputNum);
 		while(iTest.hasNext()) {
 			DataSet next = iTest.next();
-			// get network's prediction
-			INDArray output = model.output(next.getFeatureMatrix()); 
-			// check prediction against true class
-			eval.eval(next.getLabels(), output);
+			INDArray features = next.getFeatureMatrix();
+			INDArray labels = next.getLabels();
+			INDArray inMask = next.getFeaturesMaskArray();
+			INDArray outMask = next.getLabelsMaskArray();
+			INDArray predicted = model.output(features, false);
+			eval.evalTimeSeries(labels, predicted, outMask);
 		}
 		
 		System.out.println(eval.stats());

@@ -72,7 +72,7 @@ public class TweetIterator implements DataSetIterator {
                 	}
                 }
                 currBR.close();
-                System.out.println(temp + ", " + tweetCount);
+                //System.out.println(temp + ", " + tweetCount);
                 Pair<String, List<String>> tempPair = Pair.of(temp, tempList);
                 this.categoryData.add(tempPair);
             }
@@ -137,10 +137,10 @@ public class TweetIterator implements DataSetIterator {
 	private DataSet nextDataSet(int num) throws IOException {
 		List<String> tweets = new ArrayList<>(num);
 		int[] category = new int[num];
-		System.out.println("142: " + currCategory + ", "+ categoryData.size());
+		//System.out.println("142: " + currCategory + ", "+ categoryData.size());
 
 		for(int i=0; i< num && cursor < totalExamples(); i++) {
-			System.out.println("tweetPos: "+tweetPos);
+			//System.out.println("tweetPos: "+tweetPos);
 			if(currCategory < categoryData.size()) {
 				tweets.add(categoryData.get(currCategory).getValue()
 						.get(tweetPos));
@@ -169,7 +169,7 @@ public class TweetIterator implements DataSetIterator {
 			allTokens.add(tokensFiltered);
 			maxLength = Math.max(maxLength, tokensFiltered.size());
 		}
-		System.out.println("maxLength: " + maxLength + " trunc: "+ truncateLength);
+		//System.out.println("maxLength: " + maxLength + " trunc: "+ truncateLength);
 
 		if(maxLength > truncateLength){
 			maxLength = truncateLength;
