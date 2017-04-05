@@ -1,3 +1,5 @@
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -5,6 +7,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
+import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import twitter4j.Paging;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -23,11 +26,11 @@ public class TwitterAgent {
 	public static final int PAGE_SIZE = 30;
 	
 	protected Twitter twitter;
-	protected HashMap<String, Customer> customers;
+	protected List<Customer> customers;
 	
 	public TwitterAgent(){
 		
-		customers = new HashMap<String, Customer>();
+		customers = new ArrayList<Customer>();
 		twitter = getTwitterInstance();
 		
 	}
@@ -45,54 +48,20 @@ public class TwitterAgent {
 	    return twitter;
 	}
 	
-	public boolean isCustomer(Customer possibleCustomer){
-		boolean result = false;
-		
-		if(!customers.containsKey(possibleCustomer.getUsername())){
-			return result;
-		}
-		
-		// get decision based on ifProductFrequency
-		boolean criteria1 = ifProductFrequency(possibleCustomer);
-		
-		// here we can add other functions to test user for customership then we can return
-		// logical "OR" of these results meaning that if they fulfill one of the functions they are a customer
-		// if they fulfill none they are not a customer. We might not even need more functions...
-		
-		result = criteria1;
-		
-		return result;
-		
-	}
-	
-	// Functions that determine if someone is a customer or not
-	public boolean ifProductFrequency(Customer user){
-		double threshold = 0.2;
-		boolean result = false;
-		
-		// Get user tweets and scan if matches threshold then return true
-		for(Status tweet: user.getTweets()){
-			// add logic that will use TextProcessor
-		}
-		
-		return result;
-	}
-	
-	public void createTrainingData() throws TwitterException{
-		// Create a Query object.
-        Query query = new Query("@Microsoft");
+	public void buildFiles() throws TwitterException{
+		Query query = new Query("@Microsoft");
 
         // Send API request to execute a search with the given query.
         QueryResult result = twitter.search(query);
 
         // Display search results.
-        HashMap<String, Customer> possibleCustomers = new HashMap<String, Customer>();
+        List<Customer> possibleCustomers = new ArrayList<Customer>();
         for (Status status : result.getTweets()) {
         	
         	String key = status.getUser().getScreenName();
         	
         	// add new customer if we haven't seen him/her already
-			if (!possibleCustomers.containsKey(key)) {
+			if (!possibleCustomers.contains(key)) {
 				
 				App.log("Processing timeline for user: "+key);
 				
@@ -109,33 +78,88 @@ public class TwitterAgent {
 				
 				Customer newPossibleCust = new Customer(key, tweets);
 				
-				possibleCustomers.put(key, newPossibleCust);
-        	}
-        	
+				possibleCustomers.add(newPossibleCust);
+        	}   	
         }
         
-        this.customers.putAll(possibleCustomers);
+        this.customers.addAll(possibleCustomers);
+        
+        List<Status> customerTweets = new ArrayList<Status>();
+        List<Status> nonCustomerTweets = new ArrayList<Status>();
+        
+        for(int i = 0; i < customers.size(); i++){
+    		for(int j = 0; j < customers.get(i).tweets.size(); j++){
+    			boolean found = false;
+    			TextProcessor tp = new TextProcessor();
+    			HashMap<String, Integer> filter = tp.getWordOccurences(customers.get(i).tweets.get(j).getText());
+    			List<String> filterWords = makeFilter();
+    			for(int x = 0; x < filterWords.size(); x++){
+    				if(filter.containsKey(filterWords.get(x))){
+    					found = true;
+    				}
+    			}
+    			if(found){
+					customerTweets.add(customers.get(i).tweets.get(j));
+				} else {
+					nonCustomerTweets.add(customers.get(i).tweets.get(j));
+				}
+    		}
+        }
+        try{
+            PrintWriter writer0 = new PrintWriter("0.txt", "UTF-8");
+            PrintWriter writer1 = new PrintWriter("1.txt", "UTF-8");
+            PrintWriter writer = new PrintWriter("raw.txt", "UTF-8");
+            for(int i = 0; i < customerTweets.size(); i++){
+            	String filteredString = customerTweets.get(i).getText().replaceAll("\n", "");
+            	filteredString = filteredString.replaceAll("RT [.]+:", "");
+            	writer0.println(filteredString);
+            	writer.println(filteredString);
+            }
+            writer0.close();
+            for(int i = 0; i < nonCustomerTweets.size(); i++){
+            	String filteredString = nonCustomerTweets.get(i).getText().replaceAll("\n", "");
+            	filteredString = filteredString.replaceAll("RT [.]+:", "");
+            	writer1.println(filteredString);
+            	writer.println(filteredString);
+            }
+            writer1.close();
+        } catch (IOException e) {
+           System.out.println(e);
+        }
 	}
 	
-	public Set<String> getUsers(){
-		return customers.keySet();
-	}
-	
-	public Customer getUser(String key){
-		return customers.get(key);
-	}
-	
-	public static void main(String[] args){
+	public List<String> makeFilter(){
+		List<String> filterList = new ArrayList<String>();
+		filterList.add("visual");
+		filterList.add("windows");
+		filterList.add("direct3D");
+		filterList.add("kinect");
+		filterList.add("bing");
+		filterList.add("silverlight");
+		filterList.add("MSN");
+		filterList.add("skype");
+		filterList.add("access");
+		filterList.add("excel");
+		filterList.add("oneNote");
+		filterList.add("outlook");
+		filterList.add("powerPoint");
+		filterList.add("publisher");
+		filterList.add("visio");
+		filterList.add("365");
+		filterList.add("office");
+		filterList.add("explorer");
+		filterList.add("directX");
+		filterList.add("edge");
+		filterList.add("notepad");
+		filterList.add("defender");
+		filterList.add("paint");
+		return filterList;
 		
+	}
+	
+	public static void main(String[] args) throws TwitterException{
 		TwitterAgent ta = new TwitterAgent();
-		
-		try {
-			ta.createTrainingData();
-			System.out.println(ta.getUsers());
-		} catch (TwitterException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+		ta.buildFiles();
+		System.out.println("File Generation Complete");
 	}
 }
