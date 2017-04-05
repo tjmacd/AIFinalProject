@@ -138,22 +138,40 @@ public class TweetIterator implements DataSetIterator {
 		List<String> tweets = new ArrayList<>(num);
 		int[] category = new int[num];
 		//System.out.println("142: " + currCategory + ", "+ categoryData.size());
-
+		
+		
 		for(int i=0; i< num && cursor < totalExamples(); i++) {
-			//System.out.println("tweetPos: "+tweetPos);
+			
 			if(currCategory < categoryData.size()) {
-				tweets.add(categoryData.get(currCategory).getValue()
-						.get(tweetPos));
-				category[i] = Integer.parseInt(categoryData.get(currCategory)
-						.getKey().split(",")[0]);
+				
+				if(tweetPos < categoryData.get(currCategory).getValue().size()){
+					tweets.add(categoryData.get(currCategory).getValue()
+							.get(tweetPos));
+					category[i] = Integer.parseInt(categoryData.get(currCategory)
+							.getKey().split(",")[0]);
+					cursor++;
+				} 
+				
 				currCategory++;
-				cursor++;
+				
 			} else {
 				currCategory = 0;
 				tweetPos++;
 				i--;
 			}
 		}
+		/*
+		int p = 0;
+		for(int c=0; c<categoryData.size(); c++){
+			if(cursor )
+			for(String tweet : categoryData.get(c).getValue()){
+				tweets.add(tweet);
+				category[p++] = Integer.parseInt(categoryData.get(c)
+						.getKey().split(",")[0]);
+				
+			}
+		}*/
+		
 		
 		// Tokenize strings and filter out unknown words
 		List<List<String>> allTokens = new ArrayList<>(tweets.size());
