@@ -37,8 +37,10 @@ public class TweetClassifier {
 		String DATA_PATH = "LabelledData";
 		String WORD_VECTORS_PATH = "TweetWordVector.txt";
 		
+		// Load a vocabulary of vector representations of words
 		wordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH));
 		
+		// Initialize iterators for training and testing data
 		DataSetIterator iTrain = new TweetIterator(wordVectors, batchSize, true);
 		DataSetIterator iTest = new TweetIterator(wordVectors, batchSize, false);
 		

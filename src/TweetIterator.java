@@ -23,13 +23,13 @@ import static org.nd4j.linalg.indexing.NDArrayIndex.*;
 public class TweetIterator implements DataSetIterator {
 	
 	private final int batchSize;
-	private int cursor = 0;
-	private final List<String> labels;
-	private int tweetCount = 0;
-	private final List<Pair<String, List<String>>> categoryData = new ArrayList<>();
 	private final int vectorSize;
+	private int cursor = 0;
+	private int tweetCount = 0;
 	private int currCategory = 0;
 	private int tweetPos = 0;
+	private final List<String> labels;
+	private final List<Pair<String, List<String>>> categoryData = new ArrayList<>();
 	private final TokenizerFactory tokenizerFactory;
 	private final WordVectors wordVectors;
 	private final int truncateLength = 300;
@@ -37,13 +37,17 @@ public class TweetIterator implements DataSetIterator {
 	TweetIterator(WordVectors wordVectors, int batchSize, boolean train){
 		this.batchSize = batchSize;
 		this.labels = new ArrayList<>();
+		// Load tweets
 		this.loadData(train);
+		// Initialize list of labels
 		for(Pair<String, List<String>> datum : categoryData){
 			this.labels.add(datum.getKey().split(",")[1]);
 		}
 		this.vectorSize = wordVectors.getWordVector(
 				wordVectors.vocab().wordAtIndex(0)).length;
 		this.wordVectors = wordVectors;
+		
+		// Initialize tokenizer factory
 		tokenizerFactory = new DefaultTokenizerFactory();
         tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor());
 	}
@@ -82,68 +86,18 @@ public class TweetIterator implements DataSetIterator {
 		}
 	}
 	
-
-	@Override
-	public boolean hasNext() {
-		return cursor < numExamples();
-	}
-
-	@Override
-	public DataSet next() {
-		return next(batchSize);
-	}
-
-	@Override
-	public boolean asyncSupported() {
-		return true;
-	}
-
-	@Override
-	public int batch() {
-		return batchSize;
-	}
-
-	@Override
-	public int cursor() {
-		return cursor;
-	}
-
-	@Override
-	public List<String> getLabels() {
-		return this.labels;
-	}
-
-	@Override
-	public DataSetPreProcessor getPreProcessor() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public int inputColumns() {
-		return vectorSize;
-	}
-
-	@Override
-	public DataSet next(int num) {
-		if (cursor >= this.tweetCount)
-			throw new NoSuchElementException();
-		try {
-			return nextDataSet(num);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
+	/**
+	 * Returns the next batch of tweets from the dataset
+	 * @param num 			The number of tweets to return
+	 * @return    			a DataSet of num tweets
+	 * @throws IOException
+	 */
 	private DataSet nextDataSet(int num) throws IOException {
 		List<String> tweets = new ArrayList<>(num);
 		int[] category = new int[num];
-		//System.out.println("142: " + currCategory + ", "+ categoryData.size());
-		
 		
 		for(int i=0; i< num && cursor < totalExamples(); i++) {
-			
 			if(currCategory < categoryData.size()) {
-				
 				if(tweetPos < categoryData.get(currCategory).getValue().size()){
 					tweets.add(categoryData.get(currCategory).getValue()
 							.get(tweetPos));
@@ -151,27 +105,13 @@ public class TweetIterator implements DataSetIterator {
 							.getKey().split(",")[0]);
 					cursor++;
 				} 
-				
 				currCategory++;
-				
 			} else {
 				currCategory = 0;
 				tweetPos++;
 				i--;
 			}
 		}
-		/*
-		int p = 0;
-		for(int c=0; c<categoryData.size(); c++){
-			if(cursor )
-			for(String tweet : categoryData.get(c).getValue()){
-				tweets.add(tweet);
-				category[p++] = Integer.parseInt(categoryData.get(c)
-						.getKey().split(",")[0]);
-				
-			}
-		}*/
-		
 		
 		// Tokenize strings and filter out unknown words
 		List<List<String>> allTokens = new ArrayList<>(tweets.size());
@@ -222,6 +162,57 @@ public class TweetIterator implements DataSetIterator {
 		
 		DataSet ds = new DataSet(features, labels, featuresMask, labelsMask);
 		return ds;
+	}
+
+	@Override
+	public boolean hasNext() {
+		return cursor < numExamples();
+	}
+
+	@Override
+	public DataSet next() {
+		return next(batchSize);
+	}
+
+	@Override
+	public boolean asyncSupported() {
+		return true;
+	}
+
+	@Override
+	public int batch() {
+		return batchSize;
+	}
+
+	@Override
+	public int cursor() {
+		return cursor;
+	}
+
+	@Override
+	public List<String> getLabels() {
+		return this.labels;
+	}
+
+	@Override
+	public DataSetPreProcessor getPreProcessor() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public int inputColumns() {
+		return vectorSize;
+	}
+
+	@Override
+	public DataSet next(int num) {
+		if (cursor >= this.tweetCount)
+			throw new NoSuchElementException();
+		try {
+			return nextDataSet(num);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

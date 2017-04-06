@@ -1,0 +1,53 @@
+Half customer word vectors and customer dataset
+==========================Scores========================================
+ Accuracy:        0.5312
+ Precision:       0.4891
+ Recall:          0.5017
+ F1 Score:        0.4953
+========================================================================
+With full customer word vectors and customer dataset
+==========================Scores========================================
+ Accuracy:        0.5312
+ Precision:       0.4891
+ Recall:          0.5017
+ F1 Score:        0.4953
+========================================================================
+** Likely need more data, set 0 is much smaller than 1
+
+With customer word vectors and binary User dataset
+==========================Scores========================================
+ Accuracy:        0.803
+ Precision:       0.8045
+ Recall:          0.8168
+ F1 Score:        0.8106
+========================================================================
+With User word vectors and User dataset
+==========================Scores========================================
+ Accuracy:        0.9174
+ Precision:       0.9175
+ Recall:          0.927
+ F1 Score:        0.9222
+========================================================================
+With User word vectors and User dataset, 0 halfed
+==========================Scores========================================
+ Accuracy:        0.8845
+ Precision:       0.8919
+ Recall:          0.8938
+ F1 Score:        0.8929
+========================================================================
+
+With User word vectors and User dataset, both halfed
+==========================Scores========================================
+ Accuracy:        0.9122
+ Precision:       0.9123
+ Recall:          0.9217
+ F1 Score:        0.917
+========================================================================
+
+" and " , 0 reduced to 100 values
+==========================Scores========================================
+ Accuracy:        0.6798
+ Precision:       0.7502
+ Recall:          0.6766
+ F1 Score:        0.7115
+========================================================================
