@@ -51,3 +51,11 @@ With User word vectors and User dataset, both halfed
  Recall:          0.6766
  F1 Score:        0.7115
 ========================================================================
+
+New customer dataset (microsoft followers)
+==========================Scores========================================
+ Accuracy:        0.974
+ Precision:       0.9472
+ Recall:          0.9737
+ F1 Score:        0.9603
+========================================================================

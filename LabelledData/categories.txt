@@ -1,2 +1,2 @@
-0,fry
-1,cbc
+0,customer
+1,non-customer
