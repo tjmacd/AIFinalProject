@@ -1,2 +1,2 @@
-0,crime
-1,politics
+0,fry
+1,cbc
