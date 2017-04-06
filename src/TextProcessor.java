@@ -109,27 +109,4 @@ public class TextProcessor {
 	public int getSize(HashMap<String, Integer> hm){
 		return hm.size();
 	}
-	
-	public static void main(String[] args) throws TwitterException {
-		
-		TextProcessor tp = new TextProcessor();
-		
-		HashMap<String, Integer> result = tp.getWordOccurences("hello my name is joe, and i really like my name but i dont want to say bye so i will say Hello . Hello !");
-		
-		System.out.println(result.toString());
-		
-		int removedCount = tp.filterByOccurenceCount(2, result);
-		
-		System.out.println(result.toString() + " removed: "+ removedCount);
-		
-		List<String> ignoredWordsList = new ArrayList<String>(Arrays.asList("i", "my"));
-		removedCount = tp.filterByOccurenceCount(ignoredWordsList, result);
-		
-		System.out.println(result.toString() + " removed: "+ removedCount);
-		
-		removedCount = tp.filterByFrequency(0.30, result);
-		
-		System.out.println(result.toString() + " removed: "+ removedCount);
-	}
-	
 }

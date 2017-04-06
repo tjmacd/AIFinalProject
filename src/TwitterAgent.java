@@ -35,6 +35,11 @@ public class TwitterAgent {
 		
 	}
 	
+	/* 
+	 * Initializes the ConfigurationBuilder with our API key and access credentials,
+	 * as well as sets up a new TwitterFactory with those credentials, which is what
+	 * we will be using to get all of our Twitter Data out of the queue.
+	 */
 	public Twitter getTwitterInstance(){
 		ConfigurationBuilder cb = new ConfigurationBuilder();
 		cb.setDebugEnabled(true)
@@ -48,7 +53,16 @@ public class TwitterAgent {
 	    return twitter;
 	}
 	
+	/*
+	 * A function to build the files we need to teach our Neural Network. Generates two
+	 * files, one which is a list of tweets made by customers and another of tweets made
+	 * by non-customers. Customers are determined by if they contain a list of set words
+	 * in their tweets. It then writes a file for each group, and a total file which is 
+	 * a file containing all of the tweets. This function is to be used twice, once to
+	 * grab your first Training data set and then a second time to grab a Test data set.
+	 */
 	public void buildFiles() throws TwitterException{
+		//Set up the query for people @ing Microsoft
 		Query query = new Query("@Microsoft");
 
         // Send API request to execute a search with the given query.
@@ -63,7 +77,7 @@ public class TwitterAgent {
         	// add new customer if we haven't seen him/her already
 			if (!possibleCustomers.contains(key)) {
 				
-				App.log("Processing timeline for user: "+key);
+				System.out.println("Processing timeline for user: "+key);
 				
 				List<Status> tweets = new ArrayList<>();
 				
@@ -84,9 +98,12 @@ public class TwitterAgent {
         
         this.customers.addAll(possibleCustomers);
         
+        //Set up two lists of customer and non-customer tweets
         List<Status> customerTweets = new ArrayList<Status>();
         List<Status> nonCustomerTweets = new ArrayList<Status>();
         
+        //Loop through and add all customer tweets to customer list, and non-customer
+        //tweets to non-customer list.
         for(int i = 0; i < customers.size(); i++){
     		for(int j = 0; j < customers.get(i).tweets.size(); j++){
     			boolean found = false;
@@ -105,6 +122,8 @@ public class TwitterAgent {
 				}
     		}
         }
+        //Write the two files based on our two lists, as well as write a final file
+        //for all of the tweets.
         try{
             PrintWriter writer0 = new PrintWriter("0.txt", "UTF-8");
             PrintWriter writer1 = new PrintWriter("1.txt", "UTF-8");
@@ -123,11 +142,16 @@ public class TwitterAgent {
             	writer.println(filteredString);
             }
             writer1.close();
+            writer.close();
         } catch (IOException e) {
            System.out.println(e);
         }
 	}
 	
+	/*
+	 * Defines the words we are filtering for. This determine what words mark 
+	 * Microsoft Customers as being customers.
+	 */
 	public List<String> makeFilter(){
 		List<String> filterList = new ArrayList<String>();
 		filterList.add("visual");

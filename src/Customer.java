@@ -2,6 +2,7 @@ import java.util.List;
 
 import twitter4j.Status;
 
+//Basic class to hold the user and their tweets
 public class Customer {
 	
 	String username;

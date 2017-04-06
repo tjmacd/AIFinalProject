@@ -12,6 +12,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
+/*
+ * Class that builds our WordVector, which ultimately is what we use to determine what
+ * is classified as what in our Neural Network. Takes in a text file, which it then
+ * vectorizes, formatting it appropriately. We then build our model and fit the data.
+ * Lastly, we write it out to a file so we can use it in our other classes.
+ */
 public class PrepareWordVector {
 
     private static Logger log = LoggerFactory.getLogger(PrepareWordVector.class);
@@ -19,8 +25,7 @@ public class PrepareWordVector {
     public static void main(String[] args) throws Exception {
 
         // Gets Path to Text file
-        //String classPathResource = new ClassPathResource("NewsData").getFile().getAbsolutePath() + File.separator;
-        String filePath = new File("raw.txt").getAbsolutePath();
+    	String filePath = new File("raw.txt").getAbsolutePath();
 
         log.info("Load & Vectorize Sentences....");
         // Strip white space before and after for each line

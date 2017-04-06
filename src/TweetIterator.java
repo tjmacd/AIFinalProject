@@ -20,8 +20,12 @@ import org.nd4j.linalg.indexing.INDArrayIndex;
 
 import static org.nd4j.linalg.indexing.NDArrayIndex.*;
 
+/*
+ * 
+ */
 public class TweetIterator implements DataSetIterator {
 	
+	//Define a WHOLE BUNCH of starting variables
 	private final int batchSize;
 	private final int vectorSize;
 	private int cursor = 0;
@@ -61,6 +65,7 @@ public class TweetIterator implements DataSetIterator {
 		
 		try(BufferedReader brCategories = new BufferedReader(new FileReader(categories))){
 			String temp = "";
+			//Load in our train and test data from the files
             while ((temp = brCategories.readLine()) != null) {
                 String curFileName = train == true ?
                     dataDirectory + File.separator + "train" + File.separator + temp.split(",")[0] + ".txt" :
@@ -68,6 +73,8 @@ public class TweetIterator implements DataSetIterator {
                 File currFile = new File(curFileName);
                 BufferedReader currBR = new BufferedReader((new FileReader(currFile)));
                 String tempCurrLine = "";
+                //Read the current line and check if it is empty. If it is not empty, at it
+                //to our list of lines.
                 List<String> tempList = new ArrayList<>();
                 while ((tempCurrLine = currBR.readLine()) != null) {
                 	if(!tempCurrLine.isEmpty()){
@@ -76,7 +83,7 @@ public class TweetIterator implements DataSetIterator {
                 	}
                 }
                 currBR.close();
-                //System.out.println(temp + ", " + tweetCount);
+                //Make a pair for our data and shove it into our category data
                 Pair<String, List<String>> tempPair = Pair.of(temp, tempList);
                 this.categoryData.add(tempPair);
             }
@@ -86,21 +93,25 @@ public class TweetIterator implements DataSetIterator {
 		}
 	}
 	
-	/**
-	 * Returns the next batch of tweets from the dataset
-	 * @param num 			The number of tweets to return
-	 * @return    			a DataSet of num tweets
-	 * @throws IOException
+	/*
+	 * Returns the next batch of tweets from the dataset. Bounces back and forth
+	 * between our two lists of data, reading one line from each. If one of the
+	 * lists is at the end, just skip reading from that list and go back to the 
+	 * other list. It takes the number of tweets to return as an parameter, and 
+	 * returns the DataSet of tweets based on the parameter.
 	 */
 	private DataSet nextDataSet(int num) throws IOException {
 		List<String> tweets = new ArrayList<>(num);
 		int[] category = new int[num];
 		
+		//Bounce between our two lists adding tweets to the data set. Don't if at end of
+		//one list.
 		for(int i=0; i< num && cursor < totalExamples(); i++) {
 			if(currCategory < categoryData.size()) {
 				if(tweetPos < categoryData.get(currCategory).getValue().size()){
 					tweets.add(categoryData.get(currCategory).getValue()
 							.get(tweetPos));
+					//Splits up the category data, used for how we are displaying the two groups
 					category[i] = Integer.parseInt(categoryData.get(currCategory)
 							.getKey().split(",")[0]);
 					cursor++;
@@ -113,21 +124,20 @@ public class TweetIterator implements DataSetIterator {
 			}
 		}
 		
-		// Tokenize strings and filter out unknown words
+		// Tokenize strings and filter out unknown words so everything doesn't break
 		List<List<String>> allTokens = new ArrayList<>(tweets.size());
 		int maxLength = 0;
 		for(String s : tweets) {
-			//System.out.println(s);
 			List<String> tokens = tokenizerFactory.create(s).getTokens();
 			List<String> tokensFiltered = new ArrayList<>();
 			for(String t : tokens) {
 				if(wordVectors.hasWord(t))
 					tokensFiltered.add(t);
 			}
+			//Add the filtered tokens to our total list of tokens.
 			allTokens.add(tokensFiltered);
 			maxLength = Math.max(maxLength, tokensFiltered.size());
 		}
-		//System.out.println("maxLength: " + maxLength + " trunc: "+ truncateLength);
 
 		if(maxLength > truncateLength){
 			maxLength = truncateLength;
@@ -160,10 +170,13 @@ public class TweetIterator implements DataSetIterator {
 			labelsMask.putScalar(new int[]{i,  lastIdx-1}, 1.0);
 		}
 		
+		//Define a new dataset based on the features and labels grabbed, then returns it
 		DataSet ds = new DataSet(features, labels, featuresMask, labelsMask);
 		return ds;
 	}
 
+	//Bunch of utility functions for getting and moving different data 
+	//and variables around.
 	@Override
 	public boolean hasNext() {
 		return cursor < numExamples();

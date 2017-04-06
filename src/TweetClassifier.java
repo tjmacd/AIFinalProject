@@ -23,6 +23,11 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
+/*
+ * The class we are using to actual classify the tweets. Builds our model based on the
+ * word vector we built in the PrepareWordVector class. Runs the data through the word
+ * vector, and spits out the output.
+ */
 public class TweetClassifier {
 	
 	public static WordVectors wordVectors;
@@ -47,40 +52,14 @@ public class TweetClassifier {
 		int numInputs = wordVectors.getWordVector(wordVectors.vocab().wordAtIndex(0)).length;
 		int numHiddenNodes = 200;
 		
-		/*
 		MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
-				.seed(rngSeed) // random seed for reproducibility
-				// use stochastic gradient descent as optimization algorithm
-				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-				.iterations(1) // one iteration
-				.learningRate(0.006)
-				// specify the rate of change of the learning rate
-				.updater(Updater.NESTEROVS).momentum(0.9)
-				.regularization(true).l2(1e-4)
-				.list()
-				// create first input layer with xavier linearization
-				.layer(0, new DenseLayer.Builder()
-						.nIn(numInputs)
-						.nOut(numHiddenNodes)
-						.weightInit(WeightInit.XAVIER)
-						.activation(Activation.RELU)
-						.build())
-				.layer(1, new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
-						.nIn(numHiddenNodes)
-						.nOut(outputNum)
-						.activation(Activation.SOFTMAX)
-						.weightInit(WeightInit.XAVIER)
-						.build())
-				.pretrain(false).backprop(true) // adjust weights with backpropagation
-				.build();
-				*/
-		
-		MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
+				//Set Stochastic Gradient Descent as algorithm
 	            .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
 	            .updater(Updater.RMSPROP)
 	            .regularization(true).l2(1e-5)
 	            .weightInit(WeightInit.XAVIER)
 	            .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
+	            //Define some learning parameters
 	            .learningRate(0.0018)
 	            .list()
 	            .layer(0, new GravesLSTM.Builder()
@@ -96,16 +75,19 @@ public class TweetClassifier {
 	            		.build())
 	            .pretrain(false).backprop(true).build();
 		
+		//Initialize our model using the Neurel Network we just configured.
 		MultiLayerNetwork model = new MultiLayerNetwork(conf);
 		model.init();
 		model.setListeners(new ScoreIterationListener(1));
 		
+		//Train the model
 		System.out.println("Train model...");
 		for(int i=0; i<numEpochs; i++) {
 			model.fit(iTrain);
 			iTrain.reset();
 		}
 		
+		//Evaluate our model, grabbing features, labels, etc.
 		System.out.println("Evaluate model...");
 		Evaluation eval = new Evaluation(outputNum);
 		while(iTest.hasNext()) {
