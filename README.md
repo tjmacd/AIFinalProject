@@ -1,4 +1,2 @@
 # AI Final Project
-- Colton Howe (100520095)
-- Murtja Alkhabbaz (100478903)
-- Timothy MacDougall (100493250)
+Deep learning tweet classifier using deeplearning4j and twitter4j libraries. Trains and tests a text classifier using gradient descent.
